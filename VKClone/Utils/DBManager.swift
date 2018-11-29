@@ -46,13 +46,7 @@ final class DBManager: DBManagerProtocol {
         Generator.generateAndSaveRandomUser(context: context)
     }
     
-    
-    // MARK: - DBManager utils
-    
-    /// Return model from database
-    ///
-    /// - Parameter type: type of model
-    /// - Returns: the model
+
     func get<T>( with type: T.Type, predicate: (T) -> Bool ) -> T? where T : NSManagedObject {
         
         let request = T.fetchRequest()
@@ -70,11 +64,7 @@ final class DBManager: DBManagerProtocol {
         
         return result.count > 0 ? result.first : nil
     }
-    
-    /// Return all entities of given type
-    ///
-    /// - Parameter type: type of models
-    /// - Returns: the set of models
+
     func getAll<T>(with type: T.Type, predicate: (T) -> Bool ) -> [T]? where T : NSManagedObject {
         
         let request = T.fetchRequest()
@@ -93,9 +83,6 @@ final class DBManager: DBManagerProtocol {
         return result
     }
     
-    /// Update given model in database
-    ///
-    /// - Parameter model: model to save
     func update<T>(model: T) where T : NSManagedObject {
         
         let predicate = {(currentModel: T) -> Bool in return currentModel == model}
@@ -110,10 +97,7 @@ final class DBManager: DBManagerProtocol {
         
         
     }
-    
-    /// delete given model from database
-    ///
-    /// - Parameter model: model
+
     func delete<T>(model: T) where T : NSManagedObject {
         
         context.delete(model)
