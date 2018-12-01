@@ -33,10 +33,7 @@ class UserPageViewController: UIViewController {
 
         dataManager = DBManager.sharedInstance
         
-        currentUser = dataManager.get(with: User.self, predicate: { (user) -> Bool in
-            
-            return true
-        })
+        currentUser = dataManager.get(with: User.self)
         
         applyStyles()
     }

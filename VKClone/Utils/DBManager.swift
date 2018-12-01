@@ -14,9 +14,28 @@ final class DBManager: DBManagerProtocol {
     
     static let sharedInstance = DBManager()
     
+    // MARK: - Operation queues
+    
+    private lazy var updateOperationQueue: OperationQueue = {
+        
+        let queue = OperationQueue()
+        queue.name = "Update model operation queue"
+        
+        return queue
+    }()
+    
+    private lazy var deleteOperationQueue: OperationQueue = {
+        
+        let queue = OperationQueue()
+        queue.name = "Delete model operation queue"
+        
+        return queue
+    }()
+    
+    
     // MARK: - Core Data stack
     
-    lazy var persistentContainer: NSPersistentContainer = {
+    private lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "VKClone")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
@@ -26,21 +45,11 @@ final class DBManager: DBManagerProtocol {
         return container
     }()
     
-    lazy var context: NSManagedObjectContext = {
+    private lazy var context: NSManagedObjectContext = {
         return self.persistentContainer.viewContext
     }()
     
-    
-    // MARK: - Constructor
-    
-    private init() {
-
-        Generator.generateAndSaveRandomUser(context: context)
-    }
-    
-    // MARK: - Methods to work with data
-    
-    func saveContext () {
+    private func saveContext () {
         let context = persistentContainer.viewContext
         if context.hasChanges {
             do {
@@ -51,38 +60,57 @@ final class DBManager: DBManagerProtocol {
             }
         }
     }
+    
+    
+    // MARK: - Constructor
+    
+    private init() {
 
-    func get<T>( with type: T.Type, predicate: (T) -> Bool ) -> T? where T : NSManagedObject {
+        Generator.generateAndSaveRandomUser(context: context)
+    }
+    
+    
+    // MARK: - Methods to work with data
+
+    func get<T>( with type: T.Type) -> T? where T : NSManagedObject {
         
-        let request = T.fetchRequest()
-        var result: [T] = []
+        let request = (type.self).fetchRequest()
         
         if let models = try? context.fetch(request) as! [T] {
             
-            models.forEach{ if predicate($0) { result.append($0) } }
+            return models.count > 0 ? models.first : nil
         }
         
-        return result.count > 0 ? result.first : nil
+        return nil
     }
+    
+    func asyncGet<T>(with type: T.Type, completionBlock: @escaping (T?) -> Void) where T : NSManagedObject {
+        
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            completionBlock(self.get(with: type))
+        }
+    }
+    
 
-    func getAll<T>(with type: T.Type, predicate: (T) -> Bool ) -> [T]? where T : NSManagedObject {
+    func getAll<T>(with type: T.Type) -> [T]? where T : NSManagedObject {
 
         let request = (type.self).fetchRequest()
-        var result: [T] = []
         
-        if let models = try? context.fetch(request) as! [T] {
-            
-            models.forEach{ if predicate($0) { result.append($0) } }
+        let models = try? context.fetch(request) as! [T]
+        
+        return models
+    }
+    
+    func asyncGetAll<T>(with type: T.Type, completionBlock: @escaping ([T]?) -> Void) where T : NSManagedObject {
+        
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            completionBlock(self.getAll(with: type))
         }
-        
-        return result
     }
     
     func update<T>(model: T) where T : NSManagedObject {
-        
-        let predicate = {(currentModel: T) -> Bool in return currentModel == model}
-        
-        if let oldModel = self.get(with: type(of: model), predicate: predicate) {
+                
+        if let oldModel = self.get(with: type(of: model)) {
             
             context.delete(oldModel)
             self.saveContext()
@@ -90,11 +118,30 @@ final class DBManager: DBManagerProtocol {
             return
         }
     }
+    
+    func asyncUpdate<T>(model: T, completionBlock: @escaping (Bool) -> Void) where T : NSManagedObject {
+        
+        updateOperationQueue.addOperation {
+            
+            self.update(model: model)
+            completionBlock(true)
+        }
+        
+    }
 
     func delete<T>(model: T) where T : NSManagedObject {
         
         context.delete(model)
         self.saveContext()
+    }
+    
+    func asyncDelete<T>(model: T, completionBlock: @escaping (Bool) -> Void) where T : NSManagedObject {
+        
+        deleteOperationQueue.addOperation {
+            
+            self.delete(model: model)
+            completionBlock(true)
+        }
     }
     
     /// Generates random post and save it

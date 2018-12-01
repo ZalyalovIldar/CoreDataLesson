@@ -41,19 +41,15 @@ class NewsViewController: UIViewController, UITableViewDelegate, UITableViewData
     override func viewDidAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        DispatchQueue.main.async { [weak self] in
+        dataManager.asyncGetAll(with: Post.self) { [weak self] (posts) in
             
              if let strongSelf = self {
                 
-                strongSelf.posts = strongSelf.dataManager.getAll(with: Post.self, predicate: { (post) -> Bool in return true
-                })
-        
+                strongSelf.posts = posts
                 strongSelf.tableView.reloadData()
-                
             }
         }
     }
-    
     
     
     //MARK: - Configure table
@@ -77,13 +73,11 @@ class NewsViewController: UIViewController, UITableViewDelegate, UITableViewData
     /// - Parameter refreshControl
     @objc func handleRefresh(_ refreshControl: UIRefreshControl) {
 
-        DispatchQueue.main.async { [weak self] in
+        dataManager.asyncGetAll(with: Post.self) { [weak self] (posts) in
             
             if let strongSelf = self {
                 
-                strongSelf.posts = strongSelf.dataManager.getAll(with: Post.self, predicate: { (post) -> Bool in return true
-                })
-                
+                strongSelf.posts = strongSelf.dataManager.getAll(with: Post.self)
                 strongSelf.tableView.reloadData()
                 strongSelf.refreshControl.endRefreshing()
             }
@@ -98,6 +92,7 @@ class NewsViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
         if segue.identifier == detailedPostSequeId, let post = sender as? Post {
             
             let destinationController = segue.destination as! DetailedPostViewController

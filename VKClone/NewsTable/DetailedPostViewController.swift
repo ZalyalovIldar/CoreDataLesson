@@ -32,7 +32,7 @@ class DetailedPostViewController: UIViewController {
         
         guard post.postText != "" else { return }
         let text = post.postText
-        let vc = UIActivityViewController(activityItems: [text], applicationActivities: [])
+        let vc = UIActivityViewController(activityItems: [text!], applicationActivities: [])
         
         if let popoverController = vc.popoverPresentationController {
             
@@ -48,15 +48,7 @@ class DetailedPostViewController: UIViewController {
 
         dataManager = DBManager.sharedInstance
         
-        DispatchQueue.main.async { [weak self] in
-            
-            if let strongSelf = self {
-                
-                strongSelf.post = strongSelf.dataManager.get(with: Post.self, predicate: { (post) ->
-                    Bool in return strongSelf.postId == post.id
-                })
-            }
-        }
+        post = dataManager.get(with: Post.self)
         
         congigureDetailedPost()
     }
