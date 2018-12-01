@@ -21,23 +21,11 @@ class UserPageViewController: UIViewController {
     @IBOutlet weak var editButton: UIButton!
     
     var currentUser: User!
-    var dataManager: DBManagerProtocol!
+    var dataManager: DBManager!
     
     let detailInfoSegueID = "detailUserInfo"
     let moscowCity = "Москва"
     let cornerRadius = 10
-
-    lazy var persistentContainer: NSPersistentContainer? = {
-        
-        guard let delegate = UIApplication.shared.delegate as? AppDelegate
-            else { return nil }
-        
-        return delegate.persistentContainer
-    }()
-    
-    lazy var context: NSManagedObjectContext = {
-        return self.persistentContainer!.viewContext
-    }()
     
     
     override func viewDidLoad() {
@@ -91,7 +79,7 @@ class UserPageViewController: UIViewController {
     
     @IBAction func addNewPost(_ sender: Any) {
         
-        Generator.generateAndSaveRandomPost(context: context)
+        dataManager.generateAndSaveRandomPost()
     }
     
 }

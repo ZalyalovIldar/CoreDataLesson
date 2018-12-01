@@ -22,7 +22,7 @@ class NewsViewController: UIViewController, UITableViewDelegate, UITableViewData
     lazy var refreshControl: UIRefreshControl = {
         
         let refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: #selector(self.handleRefresh(_:)), for: UIControl.Event.valueChanged)
+        refreshControl.addTarget(self, action: #selector(self.handleRefresh(_:)), for: .valueChanged)
         refreshControl.tintColor = UIColor.gray
         
         return refreshControl
@@ -41,11 +41,17 @@ class NewsViewController: UIViewController, UITableViewDelegate, UITableViewData
     override func viewDidAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        posts = dataManager.getAll(with: Post.self, predicate: { (post) -> Bool in
-            return true
-        })
+        DispatchQueue.main.async { [weak self] in
+            
+             if let strongSelf = self {
+                
+                strongSelf.posts = strongSelf.dataManager.getAll(with: Post.self, predicate: { (post) -> Bool in return true
+                })
         
-        self.tableView.reloadData()
+                strongSelf.tableView.reloadData()
+                
+            }
+        }
     }
     
     
@@ -71,13 +77,17 @@ class NewsViewController: UIViewController, UITableViewDelegate, UITableViewData
     /// - Parameter refreshControl
     @objc func handleRefresh(_ refreshControl: UIRefreshControl) {
 
-        posts = dataManager.getAll(with: Post.self, predicate: { (post) -> Bool in
-        
-            return true
-        })
-        
-        self.tableView.reloadData()
-        refreshControl.endRefreshing()
+        DispatchQueue.main.async { [weak self] in
+            
+            if let strongSelf = self {
+                
+                strongSelf.posts = strongSelf.dataManager.getAll(with: Post.self, predicate: { (post) -> Bool in return true
+                })
+                
+                strongSelf.tableView.reloadData()
+                strongSelf.refreshControl.endRefreshing()
+            }
+        }
     }
     
 

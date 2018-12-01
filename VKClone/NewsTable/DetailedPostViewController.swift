@@ -48,10 +48,15 @@ class DetailedPostViewController: UIViewController {
 
         dataManager = DBManager.sharedInstance
         
-        post = dataManager.get(with: Post.self, predicate: { (post) -> Bool in
-
-            return postId == post.id
-        })
+        DispatchQueue.main.async { [weak self] in
+            
+            if let strongSelf = self {
+                
+                strongSelf.post = strongSelf.dataManager.get(with: Post.self, predicate: { (post) ->
+                    Bool in return strongSelf.postId == post.id
+                })
+            }
+        }
         
         congigureDetailedPost()
     }

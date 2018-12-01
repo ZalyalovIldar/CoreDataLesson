@@ -14,38 +14,43 @@ final class DBManager: DBManagerProtocol {
     
     static let sharedInstance = DBManager()
     
-    // MARK: - CoreData utils
+    // MARK: - Core Data stack
     
-    lazy var persistentContainer: NSPersistentContainer? = {
-        
-        guard let delegate = UIApplication.shared.delegate as? AppDelegate
-            else { return nil }
-        
-        return delegate.persistentContainer
+    lazy var persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "VKClone")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+        return container
     }()
     
     lazy var context: NSManagedObjectContext = {
-        return self.persistentContainer!.viewContext
+        return self.persistentContainer.viewContext
     }()
     
-    func saveContext () {
-        
-        guard context.hasChanges else { return }
-        
-        do {
-            try context.save()
-        }
-        catch let error{
-            print("Cannot save context \(error)")
-        }
-    }
     
+    // MARK: - Constructor
     
     private init() {
 
         Generator.generateAndSaveRandomUser(context: context)
     }
     
+    // MARK: - Methods to work with data
+    
+    func saveContext () {
+        let context = persistentContainer.viewContext
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                let nserror = error as NSError
+                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+            }
+        }
+    }
 
     func get<T>( with type: T.Type, predicate: (T) -> Bool ) -> T? where T : NSManagedObject {
         
@@ -54,30 +59,20 @@ final class DBManager: DBManagerProtocol {
         
         if let models = try? context.fetch(request) as! [T] {
             
-            for model in models {
-                
-                if predicate(model) {
-                    result.append(model)
-                }
-            }
+            models.forEach{ if predicate($0) { result.append($0) } }
         }
         
         return result.count > 0 ? result.first : nil
     }
 
     func getAll<T>(with type: T.Type, predicate: (T) -> Bool ) -> [T]? where T : NSManagedObject {
-        
-        let request = T.fetchRequest()
+
+        let request = (type.self).fetchRequest()
         var result: [T] = []
         
         if let models = try? context.fetch(request) as! [T] {
             
-            for model in models {
-                
-                if predicate(model) {
-                    result.append(model)
-                }
-            }
+            models.forEach{ if predicate($0) { result.append($0) } }
         }
         
         return result
@@ -94,14 +89,17 @@ final class DBManager: DBManagerProtocol {
             
             return
         }
-        
-        
     }
 
     func delete<T>(model: T) where T : NSManagedObject {
         
         context.delete(model)
         self.saveContext()
+    }
+    
+    /// Generates random post and save it
+    func generateAndSaveRandomPost() {
+        Generator.generateAndSaveRandomPost(context: context)
     }
     
 }
