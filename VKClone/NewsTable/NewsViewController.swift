@@ -38,7 +38,7 @@ class NewsViewController: UIViewController, UITableViewDelegate, UITableViewData
         dataManager = DBManager.sharedInstance
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         dataManager.asyncGetAll(with: Post.self) { [weak self] (posts) in
