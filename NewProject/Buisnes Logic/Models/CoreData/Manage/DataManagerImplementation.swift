@@ -68,4 +68,16 @@ class DataManagerImplementation: DataManager {
         return persistentContainer.viewContext
     }
     
+    func delete<T>(with type: T.Type, predicate: NSPredicate?) where T: NSManagedObject {
+        let fetchRequest = T.fetchRequest()
+        fetchRequest.predicate = predicate
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        do {
+            try persistentContainer.viewContext.execute(deleteRequest)
+            saveContext()
+        } catch {
+            print(error)
+            return
+        }
+    }
 }

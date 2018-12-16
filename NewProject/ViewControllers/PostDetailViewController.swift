@@ -23,24 +23,24 @@ class PostDetailViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        filling()
+    
         viewControllerUtils = ViewControllerUtilsImplementation()
     }
     
     // MARK: - Adding content and sharing -
     
     /// заполнение данных из основного контроллера в новое окно детальной информации.
-    func filling() {
-        
-        if let avatarData = mainViewController.somePostArray[selectedIndex].avatar as Data? {
-            avatarImageView.image = UIImage(data: avatarData)
-        }
-        nameOfGroupLabel.text = mainViewController.somePostArray[selectedIndex].name
-        textOfPostLabel.text = mainViewController.somePostArray[selectedIndex].textDescription
-        if let avatarData = mainViewController.somePostArray[selectedIndex].someImage as Data? {
-            contentImageView.image = UIImage(data: avatarData)
-        }
-    }
+//    func filling() {
+//        
+//        if let avatarData = mainViewController.somePostArray[selectedIndex].avatar as Data? {
+//            avatarImageView.image = UIImage(data: avatarData)
+//        }
+//        nameOfGroupLabel.text = mainViewController.somePostArray[selectedIndex].name
+//        textOfPostLabel.text = mainViewController.somePostArray[selectedIndex].textDescription
+//        if let avatarData = mainViewController.somePostArray[selectedIndex].someImage as Data? {
+//            contentImageView.image = UIImage(data: avatarData)
+//        }
+//    }
     
     
     /// метод для шаринга с помощью UIActivityViewController
